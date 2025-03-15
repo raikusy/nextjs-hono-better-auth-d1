@@ -1,0 +1,4 @@
+BETTER_AUTH_SECRET = "your-secret-key-change-in-production"
+BETTER_AUTH_URL = "http://localhost:3000"
+GOOGLE_CLIENT_ID = "your-google-client-id"
+GOOGLE_CLIENT_SECRET = "your-google-client-secret"
