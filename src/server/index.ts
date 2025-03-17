@@ -1,12 +1,17 @@
 import { getAuth } from "@/lib/auth";
-import type { AppBindings } from "@/lib/types";
-import { Hono } from "hono";
 
-const app = new Hono<AppBindings>();
+import honoFactory from "./hono-factory";
+import authRoute from "./routes/auth-route";
+import postsRoute from "./routes/posts-route";
 
-app.on(["POST", "GET"], "/api/auth/*", (c) => {
-  return getAuth(c).handler(c.req.raw);
-});
+const routes = honoFactory
+  .createApp()
+  .basePath("/api")
+  .on(["POST", "GET"], "/auth/*", (c) => {
+    return getAuth(c).handler(c.req.raw);
+  })
+  .route("/", authRoute)
+  .route("/posts", postsRoute);
 
-export type App = typeof app;
-export default app;
+export type HonoApp = typeof routes;
+export default routes;
