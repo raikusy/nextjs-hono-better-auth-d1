@@ -5,10 +5,8 @@ import { apiClient } from "@/lib/hc-client";
 import { formatDate } from "@/lib/utils";
 
 export async function BlogList() {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-
   const postResponse = await apiClient.api.posts.$get();
+  console.log(postResponse);
   const posts = await postResponse.json();
 
   return (

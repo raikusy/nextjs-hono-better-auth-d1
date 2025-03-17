@@ -29,6 +29,33 @@ const authRoute = honoFactory
       },
     });
     return c.json(user);
+  })
+  .get("/google", async (c) => {
+    const auth = c.get("auth");
+    const url = await auth.api.signInSocial({
+      headers: c.req.raw.headers,
+      body: {
+        provider: "google",
+        redirectURI: `${c.env.BETTER_AUTH_URL}/api/auth/callback/google`,
+      },
+    });
+
+    if (!url || !url.url) {
+      return c.json({ error: "Failed to get Google login URL" }, 500);
+    }
+
+    return c.redirect(url.url);
+  })
+  .get("/google/callback", async (c) => {
+    const auth = c.get("auth");
+    const user = await auth.api.signInSocial({
+      headers: c.req.raw.headers,
+      body: {
+        provider: "google",
+        code: c.req.query("code"),
+      },
+    });
+    return c.json(user);
   });
 
 export default authRoute;

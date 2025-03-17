@@ -52,15 +52,11 @@ export function LoginForm() {
     loginMutation.mutate(data);
   }
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
-    // Mock Google login
-    setTimeout(() => {
-      toast.success("You have been logged in with Google successfully");
-      router.push("/");
-      router.refresh();
-      setIsGoogleLoading(false);
-    }, 1500);
+    const response = await apiClient.api.google.$get();
+    console.log(response);
+    setIsGoogleLoading(false);
   };
 
   return (
