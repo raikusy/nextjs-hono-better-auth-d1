@@ -3,10 +3,15 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { magicLink, openAPI } from "better-auth/plugins";
 import { drizzle as drizzleD1 } from "drizzle-orm/d1";
 import type { Context } from "hono";
+
+import * as schema from "../../auth-schema";
 import type { AppBindings } from "./types";
 
 export function getAuth(c: Context<AppBindings>) {
   return betterAuth({
+    emailAndPassword: {
+      enabled: true,
+    },
     plugins: [
       openAPI(),
       magicLink({
@@ -24,9 +29,16 @@ export function getAuth(c: Context<AppBindings>) {
         redirectURI: `${c.env.BETTER_AUTH_URL}/api/auth/callback/google`,
       },
     },
-    database: drizzleAdapter(drizzleD1(c.env.DB), {
-      provider: "sqlite",
-      usePlural: true,
-    }),
+    database: drizzleAdapter(
+      drizzleD1(c.env.DB, {
+        schema: {
+          ...schema,
+        },
+      }),
+      {
+        provider: "sqlite",
+        usePlural: true,
+      }
+    ),
   });
 }
