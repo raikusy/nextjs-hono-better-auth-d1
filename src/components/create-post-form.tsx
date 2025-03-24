@@ -4,60 +4,30 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { apiClient } from "@/lib/hc-client";
-
-const postSchema = z.object({
-  title: z.string().min(5, {
-    message: "Title must be at least 5 characters",
-  }),
-  excerpt: z.string().min(10, {
-    message: "Excerpt must be at least 10 characters",
-  }),
-  content: z.string().min(50, {
-    message: "Content must be at least 50 characters",
-  }),
-  coverImage: z
-    .string()
-    .url({
-      message: "Please enter a valid URL for the cover image",
-    })
-    .optional(),
-});
-
-type PostFormValues = z.infer<typeof postSchema>;
-
-// Interface for the API response
-interface PostResponse {
-  id: string;
-  slug: string;
-  [key: string]: unknown;
-}
+import { type PostCreate, postCreateSchema } from "@/server/validations/post.schema";
 
 export function CreatePostForm() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<PostFormValues>({
-    resolver: zodResolver(postSchema),
+  const form = useForm<PostCreate>({
+    resolver: zodResolver(postCreateSchema),
     defaultValues: {
       title: "",
-      excerpt: "",
       content: "",
       coverImage: "",
     },
   });
 
   const createPostMutation = useMutation({
-    mutationFn: (data: PostFormValues) => apiClient.api.posts.$post({ json: data }),
+    mutationFn: (data: PostCreate) => apiClient.api.posts.$post({ json: data }),
     onSuccess: async (response) => {
       try {
         const data = await response.json();
@@ -83,8 +53,8 @@ export function CreatePostForm() {
     },
   });
 
-  const onSubmit = (data: PostFormValues) => {
-    createPostMutation.mutate(data);
+  const onSubmit = async (data: PostCreate) => {
+    await createPostMutation.mutateAsync(data);
   };
 
   return (
@@ -99,20 +69,6 @@ export function CreatePostForm() {
               <FormControl>
                 <Input placeholder="Enter post title" {...field} />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="excerpt"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Excerpt</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Enter a short excerpt for your post" className="resize-none" {...field} />
-              </FormControl>
-              <FormDescription>This will be displayed on the blog listing page.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -145,8 +101,8 @@ export function CreatePostForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button type="submit" className="w-full" disabled={createPostMutation.isPending}>
+          {createPostMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Create Post
         </Button>
       </form>
