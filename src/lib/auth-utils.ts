@@ -1,6 +1,12 @@
+"use server";
+
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
+import { AUTH_COOKIE_NAME } from "@/config/constants";
+
+// import { authClient } from "./auth-client";
 import { apiClient } from "./hc-client";
 
 /**
@@ -9,12 +15,28 @@ import { apiClient } from "./hc-client";
  */
 export const getCurrentUser = cache(async () => {
   try {
-    const response = await apiClient.api.session.$get();
+    // const response = await authClient.getSession();
 
-    if (!response.ok) return null;
+    // console.log(response);
 
-    const session = await response.json();
-    return session?.user ? session : null;
+    // return response.data;
+
+    const cookieStore = await cookies();
+    const cookie = cookieStore.get(AUTH_COOKIE_NAME);
+
+    const response = await apiClient.api.session.$get(
+      {},
+      {
+        headers: {
+          Credentials: "include",
+          Cookie: cookie ? `${cookie?.name}=${cookie?.value}` : "",
+        },
+      }
+    );
+    const body = await response.json();
+    console.log(body);
+
+    return body;
   } catch (error) {
     console.error("Error getting current user:", error);
     return null;

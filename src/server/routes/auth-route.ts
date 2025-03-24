@@ -1,7 +1,4 @@
 import { zValidator } from "@hono/zod-validator";
-import { setCookie } from "hono/cookie";
-
-import { AUTH_COOKIE_NAME } from "@/config/constants";
 
 import honoFactory from "../hono-factory";
 import { loginSchema, registerSchema } from "../validations/auth.schema";
@@ -9,17 +6,27 @@ import { loginSchema, registerSchema } from "../validations/auth.schema";
 const authRoute = honoFactory
   .createApp()
   .post("/login", zValidator("json", loginSchema), async (c) => {
-    const { email, password } = c.req.valid("json");
+    const data = c.req.valid("json");
     const auth = c.get("auth");
-    const user = await auth.api.signInEmail({
-      headers: c.req.raw.headers,
-      body: {
-        email,
-        password,
-      },
-    });
-    setCookie(c, AUTH_COOKIE_NAME, user.token);
-    return c.json(user);
+    const { email, password } = data;
+
+    try {
+      const res = await auth.api.signInEmail({
+        header: c.req.raw.headers,
+        body: { email, password },
+        asResponse: true,
+      });
+
+      const cookies = res.headers.get("set-cookie");
+      if (cookies) {
+        c.header("set-cookie", cookies);
+      }
+      const body = await res.json();
+      return c.json(body);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Something went wrong!";
+      return c.json({ message }, 500);
+    }
   })
   .post("/register", zValidator("json", registerSchema), async (c) => {
     const { email, password, name } = c.req.valid("json");
@@ -36,11 +43,11 @@ const authRoute = honoFactory
   })
   .get("/session", async (c) => {
     const auth = c.get("auth");
-    console.log(c.req);
+    console.log(c.req.raw.headers);
     const session = await auth.api.getSession({
       headers: c.req.raw.headers,
     });
-    console.log(session);
+    console.log("/session", session);
     return c.json(session);
   })
   .get("/google", async (c) => {

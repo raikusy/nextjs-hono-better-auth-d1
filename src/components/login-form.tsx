@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import Cookie from "js-cookie";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -14,8 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { AUTH_COOKIE_NAME } from "@/config/constants";
-import { apiClient } from "@/lib/hc-client";
+import { authClient } from "@/lib/auth-client";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -28,7 +26,6 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const router = useRouter();
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -39,29 +36,26 @@ export function LoginForm() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (data: LoginFormValues) => apiClient.api.login.$post({ json: data }),
-    onSuccess: async (response) => {
-      const res = await response.json();
-      Cookie.set(AUTH_COOKIE_NAME, res.token);
+    mutationFn: (data: LoginFormValues) => authClient.signIn.email({ email: data.email, password: data.password }),
+    onSuccess: async () => {
       toast.success("You have been logged in successfully");
       router.push("/");
-      router.refresh();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to login. Please try again.");
     },
   });
 
-  async function onSubmit(data: LoginFormValues) {
+  const onSubmit = async (data: LoginFormValues) => {
     await loginMutation.mutateAsync(data);
-  }
+  };
+
+  const googleLoginMutation = useMutation({
+    mutationFn: () => authClient.signIn.social({ provider: "google" }),
+  });
 
   const handleGoogleLogin = async () => {
-    setIsGoogleLoading(true);
-    const response = await apiClient.api.google.$get();
-    const url = await response.json();
-    console.log(url);
-    setIsGoogleLoading(false);
+    await googleLoginMutation.mutateAsync();
   };
 
   return (
@@ -108,8 +102,14 @@ export function LoginForm() {
           <span className="bg-background text-muted-foreground px-2">Or continue with</span>
         </div>
       </div>
-      <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
-        {isGoogleLoading ? (
+      <Button
+        variant="outline"
+        type="button"
+        className="w-full"
+        onClick={handleGoogleLogin}
+        disabled={googleLoginMutation.isPending}
+      >
+        {googleLoginMutation.isPending ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
           <svg

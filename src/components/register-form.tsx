@@ -11,6 +11,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 import { apiClient } from "@/lib/hc-client";
 
 const registerSchema = z
@@ -46,14 +47,12 @@ export function RegisterForm() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterFormValues) => {
-      const response = await apiClient.api.register.$post({
-        json: {
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        },
+      const response = await authClient.signUp.email({
+        name: data.name,
+        email: data.email,
+        password: data.password,
       });
-      return response.json();
+      return response.data;
     },
     onSuccess: () => {
       toast.success("Your account has been created successfully");
@@ -64,9 +63,9 @@ export function RegisterForm() {
     },
   });
 
-  function onSubmit(data: RegisterFormValues) {
-    registerMutation.mutate(data);
-  }
+  const onSubmit = async (data: RegisterFormValues) => {
+    await registerMutation.mutateAsync(data);
+  };
 
   return (
     <Form {...form}>
