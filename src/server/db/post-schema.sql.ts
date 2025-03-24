@@ -1,5 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 
 import { users } from "./auth-schema.sql";
@@ -19,8 +19,14 @@ export const posts = sqliteTable("posts", (t) => ({
   coverImage: t.text("cover_image"),
   readingTime: t.integer("reading_time").notNull(),
   excerpt: t.text("excerpt").notNull(),
-  createdAt: t.integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: t.integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: t
+    .integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: t
+    .integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 }));
 
 export const postRelations = relations(posts, ({ one }) => ({

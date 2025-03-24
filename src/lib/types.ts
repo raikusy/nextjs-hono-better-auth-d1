@@ -1,4 +1,5 @@
 import type { D1Database } from "@cloudflare/workers-types";
+import type { Session, User } from "better-auth";
 import type { DrizzleD1Database } from "drizzle-orm/d1";
 import type { Env } from "hono";
 
@@ -17,6 +18,8 @@ export interface AppBindings extends Env {
   Variables: {
     auth: ReturnType<typeof getAuth>;
     db: DrizzleD1Database<DBSchema>;
+    session: Session | null;
+    user: User | null;
   };
 }
 

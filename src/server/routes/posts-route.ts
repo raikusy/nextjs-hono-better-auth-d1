@@ -1,5 +1,6 @@
 import { zValidator } from "@hono/zod-validator";
 import { eq } from "drizzle-orm";
+import slugify from "slugify";
 
 import { posts } from "../db/post-schema.sql";
 import honoFactory from "../hono-factory";
@@ -14,16 +15,20 @@ const postsRoute = honoFactory
   })
   .post("/", zValidator("json", postCreateSchema), async (c) => {
     const db = c.get("db");
-    const auth = c.get("auth");
-    const currentSession = await auth.api.getSession({
-      headers: c.req.raw.headers,
-    });
-    if (!currentSession) {
+    const user = c.get("user");
+    if (!user) {
       return c.json({ error: "Unauthorized" }, 401);
     }
+    const validJson = c.req.valid("json");
+    const postBody = {
+      ...validJson,
+      excerpt: validJson.content.slice(0, 100),
+      slug: slugify(validJson.title, { lower: true, strict: true, trim: true }),
+      readingTime: 0,
+    };
     const post = await db.insert(posts).values({
-      ...c.req.valid("json"),
-      authorId: currentSession.user.id,
+      ...postBody,
+      authorId: user.id,
     });
     return c.json(post);
   })
