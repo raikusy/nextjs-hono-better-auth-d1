@@ -6,7 +6,6 @@ import { formatDate } from "@/lib/utils";
 
 export async function BlogList() {
   const postResponse = await apiClient.api.posts.$get();
-  console.log(postResponse);
   const posts = await postResponse.json();
 
   return (

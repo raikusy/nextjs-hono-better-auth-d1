@@ -9,7 +9,11 @@ export const postSchema = createSelectSchema(posts, {
 });
 export type Post = z.infer<typeof postSchema>;
 
-export const postCreateSchema = createInsertSchema(posts);
+export const postCreateSchema = createInsertSchema(posts).pick({
+  title: true,
+  content: true,
+  coverImage: true,
+});
 export type PostCreate = z.infer<typeof postCreateSchema>;
 
 export const postUpdateSchema = createUpdateSchema(posts);

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { apiClient } from "@/lib/hc-client";
 
 const postSchema = z.object({
   title: z.string().min(5, {
@@ -34,6 +35,13 @@ const postSchema = z.object({
 
 type PostFormValues = z.infer<typeof postSchema>;
 
+// Interface for the API response
+interface PostResponse {
+  id: string;
+  slug: string;
+  [key: string]: unknown;
+}
+
 export function CreatePostForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,24 +57,35 @@ export function CreatePostForm() {
   });
 
   const createPostMutation = useMutation({
-    mutationFn: (data: PostFormValues) => {
-      return Promise.resolve({ slug: "test-slug" });
-    },
-    onSuccess: (data) => {
-      toast.success("Post created successfully");
-      router.push(`/${data.slug}`);
-      router.refresh();
+    mutationFn: (data: PostFormValues) => apiClient.api.posts.$post({ json: data }),
+    onSuccess: async (response) => {
+      try {
+        const data = await response.json();
+        toast.success("Post created successfully");
+
+        // Generate a slug if the API doesn't return one
+        const slug = data.slug || data.id;
+
+        // Navigate to the post detail page or back to the blog list
+        if (slug) {
+          router.push(`/post/${slug}`);
+        } else {
+          router.push("/");
+        }
+      } catch (error) {
+        console.error("Error processing response:", error);
+        toast.error("Error processing response");
+      }
     },
     onError: (error) => {
+      console.error("Error creating post:", error);
       toast.error(error.message || "Failed to create post. Please try again.");
-      setIsSubmitting(false);
     },
   });
 
-  function onSubmit(data: PostFormValues) {
-    setIsSubmitting(true);
+  const onSubmit = (data: PostFormValues) => {
     createPostMutation.mutate(data);
-  }
+  };
 
   return (
     <Form {...form}>

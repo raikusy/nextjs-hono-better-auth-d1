@@ -1,4 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
+import { setCookie } from "hono/cookie";
+
+import { AUTH_COOKIE_NAME } from "@/config/constants";
 
 import honoFactory from "../hono-factory";
 import { loginSchema, registerSchema } from "../validations/auth.schema";
@@ -15,6 +18,7 @@ const authRoute = honoFactory
         password,
       },
     });
+    setCookie(c, AUTH_COOKIE_NAME, user.token);
     return c.json(user);
   })
   .post("/register", zValidator("json", registerSchema), async (c) => {
@@ -29,6 +33,15 @@ const authRoute = honoFactory
       },
     });
     return c.json(user);
+  })
+  .get("/session", async (c) => {
+    const auth = c.get("auth");
+    console.log(c.req);
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+    console.log(session);
+    return c.json(session);
   })
   .get("/google", async (c) => {
     const auth = c.get("auth");
@@ -56,6 +69,18 @@ const authRoute = honoFactory
       },
     });
     return c.json(user);
+  })
+  .get("/session", async (c) => {
+    const auth = c.get("auth");
+    const session = await auth.api.getSession({
+      headers: c.req.raw.headers,
+    });
+
+    if (!session) {
+      return c.json({ user: null });
+    }
+
+    return c.json({ user: session.user });
   });
 
 export default authRoute;

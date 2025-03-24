@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import Cookie from "js-cookie";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { AUTH_COOKIE_NAME } from "@/config/constants";
 import { apiClient } from "@/lib/hc-client";
 
 const loginSchema = z.object({
@@ -38,7 +40,9 @@ export function LoginForm() {
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormValues) => apiClient.api.login.$post({ json: data }),
-    onSuccess: () => {
+    onSuccess: async (response) => {
+      const res = await response.json();
+      Cookie.set(AUTH_COOKIE_NAME, res.token);
       toast.success("You have been logged in successfully");
       router.push("/");
       router.refresh();
@@ -48,14 +52,15 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(data: LoginFormValues) {
-    loginMutation.mutate(data);
+  async function onSubmit(data: LoginFormValues) {
+    await loginMutation.mutateAsync(data);
   }
 
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     const response = await apiClient.api.google.$get();
-    console.log(response);
+    const url = await response.json();
+    console.log(url);
     setIsGoogleLoading(false);
   };
 
