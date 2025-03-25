@@ -1,3 +1,5 @@
+import { cors } from "hono/cors";
+
 import { getAuth } from "@/lib/auth";
 
 import honoFactory from "./hono-factory";
@@ -18,6 +20,15 @@ const sessionMiddleware = honoFactory.createMiddleware(async (c, next) => {
 
 const routes = honoFactory
   .createApp()
+  .use(
+    cors({
+      origin: "http://localhost:3000",
+      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      allowHeaders: ["Content-Type", "Cookie", "Authorization"],
+      credentials: true,
+      maxAge: 86400,
+    })
+  )
   .basePath("/api")
   .use(sessionMiddleware)
   .on(["POST", "GET"], "/auth/*", (c) => {

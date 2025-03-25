@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { nextCookies } from "better-auth/next-js";
 import { magicLink, openAPI } from "better-auth/plugins";
 import { drizzle as drizzleD1 } from "drizzle-orm/d1";
 import type { Context } from "hono";
@@ -12,20 +13,17 @@ let authInstance: ReturnType<typeof betterAuth>;
 export function getAuth(c: Context<AppBindings>) {
   if (!authInstance) {
     authInstance = betterAuth({
-      secret: c.env.BETTER_AUTH_SECRET,
-      baseURL: c.env.BETTER_AUTH_URL,
       advanced: {
-        crossSubDomainCookies: {
-          enabled: true,
-          domain: "localhost",
-        },
         defaultCookieAttributes: {
-          secure: false,
           httpOnly: true,
+          hostOnly: false,
           sameSite: "lax",
+          partitioned: false,
         },
       },
       trustedOrigins: ["http://localhost:3000", "http://localhost:8787"],
+      secret: c.env.BETTER_AUTH_SECRET,
+      baseURL: c.env.BETTER_AUTH_URL,
       emailAndPassword: {
         enabled: true,
       },
@@ -33,10 +31,10 @@ export function getAuth(c: Context<AppBindings>) {
         openAPI(),
         magicLink({
           sendMagicLink: async ({ email, url }) => {
-            // send email to user
             console.log(email, url);
           },
         }),
+        nextCookies(),
       ],
       socialProviders: {
         google: {

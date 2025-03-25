@@ -24,7 +24,7 @@ const postsRoute = honoFactory
       ...validJson,
       excerpt: validJson.content.slice(0, 100),
       slug: slugify(validJson.title, { lower: true, strict: true, trim: true }),
-      readingTime: 0,
+      readingTime: Math.ceil(validJson.content.split(" ").length / 200),
     };
     const post = await db.insert(posts).values({
       ...postBody,
@@ -32,10 +32,10 @@ const postsRoute = honoFactory
     });
     return c.json(post);
   })
-  .get("/:id", async (c) => {
+  .get("/:slug", async (c) => {
     const db = c.get("db");
     const post = await db.query.posts.findFirst({
-      where: eq(posts.id, c.req.param("id")),
+      where: eq(posts.slug, c.req.param("slug")),
     });
     if (!post) {
       return c.json({ error: "Post not found" }, 404);
