@@ -1,4 +1,4 @@
-import { drizzle } from "drizzle-orm/d1";
+import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
 import type { Context } from "hono";
 
 import type { AppBindings } from "@/lib/types";
@@ -9,6 +9,11 @@ import * as postSchema from "./post-schema.sql";
 export const schema = { ...authSchema, ...postSchema };
 export type DBSchema = typeof schema;
 
+let dbInstance: DrizzleD1Database<DBSchema>;
+
 export function getDB(c: Context<AppBindings>) {
-  return drizzle(c.env.DB, { schema });
+  if (!dbInstance) {
+    dbInstance = drizzle(c.env.DB, { schema });
+  }
+  return dbInstance;
 }
