@@ -43,7 +43,10 @@ const authRoute = honoFactory
   })
   .get("/session", async (c) => {
     const auth = c.get("auth");
+    const db = c.get("db");
     console.log(c.req.raw.headers);
+    const allSessions = await db.query.sessions.findMany();
+    console.log("allSessions", allSessions);
     const session = await auth.api.getSession({
       headers: c.req.raw.headers,
     });

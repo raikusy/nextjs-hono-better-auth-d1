@@ -14,6 +14,7 @@ export interface AppBindings extends Env {
     GOOGLE_CLIENT_SECRET: string;
     BETTER_AUTH_URL: string;
     FRONTEND_URL: string;
+    BETTER_AUTH_SECRET: string;
   };
   Variables: {
     auth: ReturnType<typeof getAuth>;

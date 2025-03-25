@@ -3,12 +3,13 @@
   "name": "nextjs-hono-better-auth-d1",
   "main": "src/server/index.ts",
   "compatibility_date": "2025-03-03",
+  "compatibility_flags": ["nodejs_compat"],
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "nextjs-hono-better-auth-d1",
       "database_id": "4543f2c7-08d2-42f4-9982-35e1249e4d36",
-      "migrations_dir": "src/server/db/migrations"
-    }
-  ]
+      "migrations_dir": "src/server/db/migrations",
+    },
+  ],
 }
