@@ -14,18 +14,17 @@ export function getAuth(c: Context<AppBindings>) {
     authInstance = betterAuth({
       secret: c.env.BETTER_AUTH_SECRET,
       baseURL: c.env.BETTER_AUTH_URL,
-      // advanced: {
-      //   crossSubDomainCookies: {
-      //     enabled: true,
-      //     domain: "localhost", // Domain with a leading period
-      //   },
-      //   defaultCookieAttributes: {
-      //     secure: true,
-      //     httpOnly: true,
-      //     sameSite: "none", // Allows CORS-based cookie sharing across subdomains
-      //     partitioned: true, // New browser standards will mandate this for foreign cookies
-      //   },
-      // },
+      advanced: {
+        crossSubDomainCookies: {
+          enabled: true,
+          domain: "localhost",
+        },
+        defaultCookieAttributes: {
+          secure: false,
+          httpOnly: true,
+          sameSite: "lax",
+        },
+      },
       trustedOrigins: ["http://localhost:3000", "http://localhost:8787"],
       emailAndPassword: {
         enabled: true,

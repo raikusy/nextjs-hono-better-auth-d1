@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -5,7 +6,14 @@ import { apiClient } from "@/lib/hc-client";
 import { formatDate } from "@/lib/utils";
 
 export async function BlogList() {
-  const postResponse = await apiClient.api.posts.$get();
+  const postResponse = await apiClient.api.posts.$get(
+    {},
+    {
+      headers: {
+        cookie: (await headers()).get("cookie") ?? "",
+      },
+    }
+  );
   const posts = await postResponse.json();
 
   return (

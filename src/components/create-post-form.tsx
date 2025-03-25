@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import Cookies from "js-cookie";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -11,8 +12,20 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AUTH_COOKIE_NAME } from "@/config/constants";
 import { apiClient } from "@/lib/hc-client";
 import { type PostCreate, postCreateSchema } from "@/server/validations/post.schema";
+
+const getCookie = () => {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  const allCookies = Cookies.get();
+  console.log("ALL_COOKIES - ", allCookies); // TODO: Fix - better-auth.session_token cookie not preset here!! But it's present in the browser
+  const value = `${AUTH_COOKIE_NAME}=${Cookies.get() ?? ""}`;
+  console.log("COOKIE VALUE - ", value);
+  return value;
+};
 
 export function CreatePostForm() {
   const router = useRouter();
@@ -27,7 +40,15 @@ export function CreatePostForm() {
   });
 
   const createPostMutation = useMutation({
-    mutationFn: (data: PostCreate) => apiClient.api.posts.$post({ json: data }),
+    mutationFn: (data: PostCreate) =>
+      apiClient.api.posts.$post(
+        { json: data },
+        {
+          headers: {
+            cookie: getCookie(),
+          },
+        }
+      ),
     onSuccess: async (response) => {
       try {
         const data = await response.json();
@@ -94,7 +115,7 @@ export function CreatePostForm() {
             <FormItem>
               <FormLabel>Cover Image URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com/image.jpg" {...field} />
+                <Input placeholder="https://example.com/image.jpg" {...field} value={field.value || ""} />
               </FormControl>
               <FormDescription>Leave blank to use a placeholder image.</FormDescription>
               <FormMessage />

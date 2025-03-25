@@ -42,16 +42,9 @@ const authRoute = honoFactory
     return c.json(user);
   })
   .get("/session", async (c) => {
-    const auth = c.get("auth");
-    const db = c.get("db");
-    console.log(c.req.raw.headers);
-    const allSessions = await db.query.sessions.findMany();
-    console.log("allSessions", allSessions);
-    const session = await auth.api.getSession({
-      headers: c.req.raw.headers,
-    });
-    console.log("/session", session);
-    return c.json(session);
+    const session = c.get("session");
+    const user = c.get("user");
+    return c.json({ session, user });
   })
   .get("/google", async (c) => {
     const auth = c.get("auth");
@@ -79,18 +72,6 @@ const authRoute = honoFactory
       },
     });
     return c.json(user);
-  })
-  .get("/session", async (c) => {
-    const auth = c.get("auth");
-    const session = await auth.api.getSession({
-      headers: c.req.raw.headers,
-    });
-
-    if (!session) {
-      return c.json({ user: null });
-    }
-
-    return c.json({ user: session.user });
   });
 
 export default authRoute;
