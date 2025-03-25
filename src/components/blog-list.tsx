@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -10,7 +10,7 @@ import { BlogListClient } from "./blog-list-client";
 export async function BlogList() {
   const postResponse = await apiClient.api.posts.$get(undefined, {
     headers: {
-      cookie: (await headers()).get("cookie") ?? "",
+      cookie: (await cookies()).toString(),
     },
   });
   const posts = await postResponse.json();
