@@ -1,18 +1,14 @@
-import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 
-import { apiClient } from "@/lib/hc-client";
+import { getServerRPC } from "@/lib/server-rpc";
 import { formatDate } from "@/lib/utils";
 
 import { BlogListClient } from "./blog-list-client";
 
 export async function BlogList() {
-  const postResponse = await apiClient.api.posts.$get(undefined, {
-    headers: {
-      cookie: (await cookies()).toString(),
-    },
-  });
+  const rpc = await getServerRPC();
+  const postResponse = await rpc.api.posts.$get();
   const posts = await postResponse.json();
 
   return (

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { apiClient } from "@/lib/hc-client";
+import { clientRPC } from "@/lib/client-rpc";
 import { type PostCreate, postCreateSchema } from "@/server/validations/post.schema";
 
 export function CreatePostForm() {
@@ -27,7 +27,7 @@ export function CreatePostForm() {
   });
 
   const createPostMutation = useMutation({
-    mutationFn: (data: PostCreate) => apiClient.api.posts.$post({ json: data }),
+    mutationFn: (data: PostCreate) => clientRPC.api.posts.$post({ json: data }),
     onSuccess: async (response) => {
       try {
         const data = await response.json();

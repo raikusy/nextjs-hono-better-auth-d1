@@ -2,12 +2,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { apiClient } from "@/lib/hc-client";
+import { clientRPC } from "@/lib/client-rpc";
 
 export function BlogListClient({ children }: { children: React.ReactNode }) {
   const { data } = useQuery({
     queryKey: ["posts"],
-    queryFn: () => apiClient.api.posts.$get(),
+    queryFn: () => clientRPC.api.posts.$get(),
   });
 
   console.log(data);

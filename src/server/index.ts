@@ -7,11 +7,11 @@ import postsRoute from "./routes/posts-route";
 
 const sessionMiddleware = honoFactory.createMiddleware(async (c, next) => {
   const auth = c.get("auth");
-  console.log("Session middleware - cookies:", c.req.raw.headers.get("cookie"));
+  // console.log("Session middleware - cookies:", c.req.raw.headers.get("cookie"));
   const userSession = await auth.api.getSession({
     headers: c.req.raw.headers,
   });
-  console.log("Session middleware - userSession:", userSession);
+  // console.log("Session middleware - userSession:", userSession);
   const { user, session } = userSession ?? { user: null, session: null };
   c.set("user", user);
   c.set("session", session);

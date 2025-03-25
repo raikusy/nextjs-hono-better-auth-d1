@@ -3,12 +3,13 @@ import { Suspense } from "react";
 
 import { BlogPost } from "@/components/blog-post";
 import { BlogPostSkeleton } from "@/components/blog-post-skeleton";
-import { apiClient } from "@/lib/hc-client";
+import { getServerRPC } from "@/lib/server-rpc";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const slug = (await params).slug;
-  const postResponse = await apiClient.api.posts[":id"].$get({
-    param: { id: slug },
+  const rpc = await getServerRPC();
+  const postResponse = await rpc.api.posts[":slug"].$get({
+    param: { slug },
   });
   const post = await postResponse.json();
 
@@ -44,8 +45,9 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 }
 
 async function BlogPostContent({ slug }: { slug: string }) {
-  const postResponse = await apiClient.api.posts[":id"].$get({
-    param: { id: slug },
+  const rpc = await getServerRPC();
+  const postResponse = await rpc.api.posts[":slug"].$get({
+    param: { slug },
   });
   const post = await postResponse.json();
 
