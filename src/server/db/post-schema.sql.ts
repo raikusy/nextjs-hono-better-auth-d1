@@ -22,11 +22,11 @@ export const posts = sqliteTable("posts", (t) => ({
   createdAt: t
     .integer("created_at", { mode: "timestamp" })
     .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
+    .default(sql`(unixepoch())`),
   updatedAt: t
     .integer("updated_at", { mode: "timestamp" })
     .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
+    .default(sql`(unixepoch())`),
 }));
 
 export const postRelations = relations(posts, ({ one }) => ({

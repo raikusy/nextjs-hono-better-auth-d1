@@ -6,35 +6,17 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
-
-const registerSchema = z
-  .object({
-    name: z.string().min(2, {
-      message: "Name must be at least 2 characters",
-    }),
-    email: z.string().email({ message: "Please enter a valid email address" }),
-    password: z.string().min(6, {
-      message: "Password must be at least 6 characters",
-    }),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type RegisterFormValues = z.infer<typeof registerSchema>;
+import { type RegisterSchema, registerSchema } from "@/server/validations/auth.schema";
 
 export function RegisterForm() {
   const router = useRouter();
 
-  const form = useForm<RegisterFormValues>({
+  const form = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
@@ -45,7 +27,7 @@ export function RegisterForm() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: RegisterFormValues) => {
+    mutationFn: async (data: RegisterSchema) => {
       const response = await authClient.signUp.email({
         name: data.name,
         email: data.email,
@@ -55,14 +37,15 @@ export function RegisterForm() {
     },
     onSuccess: () => {
       toast.success("Your account has been created successfully");
-      router.push("/login");
+      router.push("/");
+      router.refresh();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to register. Please try again.");
     },
   });
 
-  const onSubmit = async (data: RegisterFormValues) => {
+  const onSubmit = async (data: RegisterSchema) => {
     await registerMutation.mutateAsync(data);
   };
 

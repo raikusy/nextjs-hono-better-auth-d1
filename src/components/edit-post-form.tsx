@@ -4,10 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import {
   AlertDialog,
@@ -24,29 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { clientRPC } from "@/lib/client-rpc";
 import type { BlogPost } from "@/lib/types";
-
-const postSchema = z.object({
-  id: z.string(),
-  title: z.string().min(5, {
-    message: "Title must be at least 5 characters",
-  }),
-  slug: z.string(),
-  excerpt: z.string().min(10, {
-    message: "Excerpt must be at least 10 characters",
-  }),
-  content: z.string().min(50, {
-    message: "Content must be at least 50 characters",
-  }),
-  coverImage: z
-    .string()
-    .url({
-      message: "Please enter a valid URL for the cover image",
-    })
-    .optional(),
-});
-
-type PostFormValues = z.infer<typeof postSchema>;
+import { type Post, type PostUpdate, postUpdateSchema } from "@/server/validations/post.schema";
 
 interface EditPostFormProps {
   post: BlogPost;
@@ -54,15 +32,12 @@ interface EditPostFormProps {
 
 export function EditPostForm({ post }: EditPostFormProps) {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  const form = useForm<PostFormValues>({
-    resolver: zodResolver(postSchema),
+  const form = useForm<PostUpdate>({
+    resolver: zodResolver(postUpdateSchema),
     defaultValues: {
       id: post.id,
       title: post.title,
-      slug: post.slug,
       excerpt: post.excerpt,
       content: post.content,
       coverImage: post.coverImage,
@@ -70,8 +45,12 @@ export function EditPostForm({ post }: EditPostFormProps) {
   });
 
   const updatePostMutation = useMutation({
-    mutationFn: (_data: PostFormValues) => {
-      return Promise.resolve({ slug: "test-slug" });
+    mutationFn: async (data: PostUpdate) => {
+      const res = await clientRPC.api.posts[":id"].$patch({
+        param: { id: post.id },
+        json: data,
+      });
+      return res.json() as Promise<Post>;
     },
     onSuccess: (data) => {
       toast.success("Post updated successfully");
@@ -80,13 +59,15 @@ export function EditPostForm({ post }: EditPostFormProps) {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to update post. Please try again.");
-      setIsSubmitting(false);
     },
   });
 
   const deletePostMutation = useMutation({
-    mutationFn: (id: string) => {
-      return Promise.resolve();
+    mutationFn: async (id: string) => {
+      const res = await clientRPC.api.posts[":id"].$delete({
+        param: { id },
+      });
+      return res.json();
     },
     onSuccess: () => {
       toast.success("Post deleted successfully");
@@ -95,21 +76,18 @@ export function EditPostForm({ post }: EditPostFormProps) {
     },
     onError: (error) => {
       toast.error(error.message || "Failed to delete post. Please try again.");
-      setIsDeleting(false);
     },
   });
 
-  function onSubmit(data: PostFormValues) {
-    setIsSubmitting(true);
-    updatePostMutation.mutate({
+  async function onSubmit(data: PostUpdate) {
+    await updatePostMutation.mutateAsync({
       ...data,
       coverImage: data.coverImage || "/placeholder.svg?height=720&width=1280",
     });
   }
 
-  function onDelete() {
-    setIsDeleting(true);
-    deletePostMutation.mutate(post.id);
+  async function onDelete() {
+    await deletePostMutation.mutateAsync(post.id);
   }
 
   return (
@@ -168,7 +146,7 @@ export function EditPostForm({ post }: EditPostFormProps) {
               <FormItem>
                 <FormLabel>Cover Image URL</FormLabel>
                 <FormControl>
-                  <Input placeholder="https://example.com/image.jpg" {...field} />
+                  <Input placeholder="https://example.com/image.jpg" {...field} value={field.value || ""} />
                 </FormControl>
                 <FormDescription>Leave blank to use a placeholder image.</FormDescription>
                 <FormMessage />
@@ -192,15 +170,15 @@ export function EditPostForm({ post }: EditPostFormProps) {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onDelete} disabled={isDeleting}>
-                    {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <AlertDialogAction onClick={onDelete} disabled={deletePostMutation.isPending}>
+                    {deletePostMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" disabled={updatePostMutation.isPending}>
+              {updatePostMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Update Post
             </Button>
           </div>

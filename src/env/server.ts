@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    API_URL: z.string(),
+    API_URL: z.string().url().nonempty(),
   },
   experimental__runtimeEnv: process.env,
 });

@@ -2,7 +2,6 @@
 
 import { hc } from "hono/client";
 import { cookies } from "next/headers";
-import { cache } from "react";
 
 import { env } from "@/env/server";
 import type { HonoApp } from "@/server";
@@ -14,13 +13,17 @@ const apiClient = hc<HonoApp>(env.API_URL, {
       credentials: "include",
       headers: {
         ...reqInit?.headers,
-        Cookie: (await cookies()).toString(),
+        Cookie: (await cookies()).toString(), // On server components, we need to pass the cookies to the fetch request
       },
     });
     return response;
   },
 });
 
-export const getServerRPC = cache(async () => {
+/**
+ * Get the RPC client for server components
+ * @returns The server RPC client
+ */
+export async function getServerRPC() {
   return apiClient;
-});
+}

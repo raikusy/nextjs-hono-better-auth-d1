@@ -1,14 +1,10 @@
-import { clsx, type ClassValue } from "clsx";
+import { type ClassValue, clsx } from "clsx";
+import dayjs from "dayjs";
 import { twMerge } from "tailwind-merge";
 
 export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  };
-  return date.toLocaleDateString(undefined, options);
+  const date = dayjs(dateString);
+  return date.format("DD MMM, YYYY hh:mm A");
 }
 
 export function cn(...inputs: ClassValue[]) {

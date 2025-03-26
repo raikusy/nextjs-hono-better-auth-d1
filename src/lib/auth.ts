@@ -5,6 +5,8 @@ import { magicLink, openAPI } from "better-auth/plugins";
 import { drizzle as drizzleD1 } from "drizzle-orm/d1";
 import type { Context } from "hono";
 
+import { ORIGINS } from "@/config/constants";
+
 import * as schema from "../../auth-schema";
 import type { AppBindings } from "./types";
 
@@ -16,12 +18,11 @@ export function getAuth(c: Context<AppBindings>) {
       advanced: {
         defaultCookieAttributes: {
           httpOnly: true,
-          hostOnly: false,
           sameSite: "lax",
-          partitioned: false,
+          partitioned: true,
         },
       },
-      trustedOrigins: ["http://localhost:3000", "http://localhost:8787"],
+      trustedOrigins: ORIGINS,
       secret: c.env.BETTER_AUTH_SECRET,
       baseURL: c.env.BETTER_AUTH_URL,
       emailAndPassword: {

@@ -6,27 +6,18 @@ import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
-
-const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters",
-  }),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { type LoginSchema, loginSchema } from "@/server/validations/auth.schema";
 
 export function LoginForm() {
   const router = useRouter();
 
-  const form = useForm<LoginFormValues>({
+  const form = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -35,17 +26,18 @@ export function LoginForm() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: (data: LoginFormValues) => authClient.signIn.email({ email: data.email, password: data.password }),
+    mutationFn: (data: LoginSchema) => authClient.signIn.email({ email: data.email, password: data.password }),
     onSuccess: async () => {
       toast.success("You have been logged in successfully");
       router.push("/");
+      router.refresh();
     },
     onError: (error) => {
       toast.error(error.message || "Failed to login. Please try again.");
     },
   });
 
-  const onSubmit = async (data: LoginFormValues) => {
+  const onSubmit = async (data: LoginSchema) => {
     await loginMutation.mutateAsync(data);
   };
 

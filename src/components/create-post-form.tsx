@@ -12,7 +12,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { clientRPC } from "@/lib/client-rpc";
-import { type PostCreate, postCreateSchema } from "@/server/validations/post.schema";
+import { type Post, type PostCreate, postCreateSchema } from "@/server/validations/post.schema";
 
 export function CreatePostForm() {
   const router = useRouter();
@@ -27,16 +27,15 @@ export function CreatePostForm() {
   });
 
   const createPostMutation = useMutation({
-    mutationFn: (data: PostCreate) => clientRPC.api.posts.$post({ json: data }),
-    onSuccess: async (response) => {
+    mutationFn: async (data: PostCreate) => {
+      const res = await clientRPC.api.posts.$post({ json: data });
+      return res.json() as Promise<Post>;
+    },
+    onSuccess: async (data) => {
       try {
-        const data = await response.json();
         toast.success("Post created successfully");
+        const slug = data.slug;
 
-        // Generate a slug if the API doesn't return one
-        const slug = data.slug || data.id;
-
-        // Navigate to the post detail page or back to the blog list
         if (slug) {
           router.push(`/post/${slug}`);
         } else {

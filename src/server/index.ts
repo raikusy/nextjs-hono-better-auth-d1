@@ -1,35 +1,16 @@
-import { cors } from "hono/cors";
-
 import { getAuth } from "@/lib/auth";
 
 import honoFactory from "./hono-factory";
+import { corsMiddleware } from "./middlewares/cors-middleware";
+import { csrfMiddleware } from "./middlewares/csrf-middleware";
+import { sessionMiddleware } from "./middlewares/session-middleware";
 import postsRoute from "./routes/posts-route";
-
-const sessionMiddleware = honoFactory.createMiddleware(async (c, next) => {
-  const auth = c.get("auth");
-  // console.log("Session middleware - cookies:", c.req.raw.headers.get("cookie"));
-  const userSession = await auth.api.getSession({
-    headers: c.req.raw.headers,
-  });
-  // console.log("Session middleware - userSession:", userSession);
-  const { user, session } = userSession ?? { user: null, session: null };
-  c.set("user", user);
-  c.set("session", session);
-  await next();
-});
 
 const routes = honoFactory
   .createApp()
-  .use(
-    cors({
-      origin: "http://localhost:3000",
-      allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      allowHeaders: ["Content-Type", "Cookie", "Authorization"],
-      credentials: true,
-      maxAge: 86400,
-    })
-  )
   .basePath("/api")
+  .use(corsMiddleware)
+  .use(csrfMiddleware)
   .use(sessionMiddleware)
   .on(["POST", "GET"], "/auth/*", (c) => {
     return getAuth(c).handler(c.req.raw);

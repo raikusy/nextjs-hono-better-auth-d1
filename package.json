@@ -36,6 +36,7 @@
     "boxen": "^8.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dayjs": "^1.11.13",
     "drizzle-orm": "^0.41.0",
     "drizzle-zod": "^0.7.0",
     "hono": "^4.7.5",

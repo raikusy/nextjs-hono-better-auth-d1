@@ -15,6 +15,13 @@
       "when": 1742133582648,
       "tag": "0001_perfect_maddog",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1742980451040,
+      "tag": "0002_vengeful_power_man",
+      "breakpoints": true
     }
   ]
 }
